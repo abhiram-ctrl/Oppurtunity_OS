@@ -1,0 +1,11 @@
+﻿# Flutter analysis options for OpportunityOS
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    deprecated_member_use: ignore
+    unnecessary_string_interpolations: ignore
+
+linter:
+  rules:
+    avoid_print: false

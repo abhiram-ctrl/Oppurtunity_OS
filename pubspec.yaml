@@ -1,0 +1,27 @@
+name: opportunity_os
+description: "OpportunityOS - Find internships instantly."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.0
+  font_awesome_flutter: ^10.7.0
+  notification_listener_service: ^0.3.5
+  http: ^1.6.0
+  url_launcher: ^6.3.1
+  flutter_local_notifications: ^18.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

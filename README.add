@@ -1,0 +1,128 @@
+OpportunityOS - Hackathon Evaluation Run Guide
+
+Purpose
+This file explains how judges can run the full project quickly (Flutter app + Node backend) and verify core functionality.
+
+Project Components
+- Flutter client: `lib/`
+- Backend API: `backend/`
+- Database: MongoDB (required by backend)
+- AI extraction service: Gemini API (required for `/import-notification` flow)
+
+Prerequisites
+1. Flutter SDK installed (stable channel)
+2. Node.js 18+ installed
+3. MongoDB connection string (local or MongoDB Atlas)
+4. Gemini API key
+5. Android emulator/device OR Chrome for Flutter web testing
+
+--------------------------------------------------
+1) Backend Setup (Required)
+--------------------------------------------------
+
+Open terminal in `backend/`:
+
+1. Install dependencies
+   npm install
+
+2. Create a `.env` file in `backend/` with the following:
+
+   PORT=5000
+   MONGO_URI=<your_mongodb_connection_string>
+   GEMINI_API_KEY=<your_gemini_api_key>
+   GMAIL_MAX_RESULTS=10
+
+   Notes:
+   - `MONGO_URI` and `GEMINI_API_KEY` are the important required keys.
+   - `GMAIL_MAX_RESULTS` is optional (default values are used if omitted).
+
+3. Start backend server
+   npm start
+
+4. Verify backend health
+   Open in browser or use curl/Postman:
+   GET http://localhost:5000/test
+
+   Expected response:
+   {"message":"Backend running successfully"}
+
+--------------------------------------------------
+2) Flutter App Setup
+--------------------------------------------------
+
+Open another terminal in project root (`mvgrhack/`):
+
+1. Install Flutter packages
+   flutter pub get
+
+2. Run app (choose one)
+
+   Android emulator/device:
+   flutter run
+
+   Chrome web:
+   flutter run -d chrome
+
+Important backend URL note
+The app tries multiple backend base URLs in `lib/services/api_service.dart`, including:
+- http://192.168.137.205:5000
+- http://10.0.2.2:5000
+- http://127.0.0.1:5000
+- http://localhost:5000
+
+If app cannot fetch opportunities, update `api_service.dart` to match your machine/network IP and restart the app.
+
+--------------------------------------------------
+3) Quick Evaluation Flow
+--------------------------------------------------
+
+1. Keep backend running.
+2. Launch Flutter app.
+3. Confirm app loads without crash.
+4. Verify backend connectivity:
+   - App should load opportunities from backend endpoint `/opportunities`.
+5. Optional API test for AI extraction + insert:
+
+   POST http://localhost:5000/import-notification
+   Content-Type: application/json
+
+   Sample body:
+   {
+     "title": "Job Alert",
+     "message": "Google is hiring Software Engineer Interns. Deadline 2026-04-30. Apply at https://careers.google.com"
+   }
+
+   Expected:
+   - 201 when new opportunity is created
+   - 409 when duplicate opportunity is detected
+
+--------------------------------------------------
+4) Common Issues
+--------------------------------------------------
+
+1. Backend exits on startup
+   - Usually invalid/missing `MONGO_URI`.
+
+2. `/import-notification` returns 503
+   - Invalid/missing `GEMINI_API_KEY` or Gemini service issue.
+
+3. Flutter app shows empty opportunities list
+   - Backend not running OR URL mismatch in `api_service.dart`.
+
+4. Android emulator cannot reach localhost backend
+   - Use `http://10.0.2.2:5000` for emulator to reach host machine.
+
+--------------------------------------------------
+5) Recommended Judge Command Order
+--------------------------------------------------
+
+Terminal A:
+- cd backend
+- npm install
+- npm start
+
+Terminal B:
+- flutter pub get
+- flutter run
+
+That is the fastest path for live demonstration during evaluation.
