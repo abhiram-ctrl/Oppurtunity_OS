@@ -3,8 +3,8 @@ const path = require('path');
 const cron = require('node-cron');
 
 const startGmailPollingService = () => {
-  const credentialsPath = path.join(__dirname, '..', 'config', 'credentials.json');
-  const tokenPath = path.join(__dirname, '..', 'config', 'token.json');
+  const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || '/etc/secrets/credentials.json';
+  const tokenPath = process.env.GMAIL_TOKEN_PATH || '/etc/secrets/token.json';
 
   if (!fs.existsSync(credentialsPath)) {
     console.warn('⚠️  Gmail credentials not found. Skipping Gmail polling service.');
