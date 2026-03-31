@@ -361,6 +361,13 @@ const startGmailIngestion = async () => {
   const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || '/etc/secrets/credentials.json';
   const tokenPath = process.env.GMAIL_TOKEN_PATH || '/etc/secrets/token.json';
 
+  // DEBUG LOGS to help diagnose file existence
+  console.log('DEBUG: Checking for credentials at:', credentialsPath, fs.existsSync(credentialsPath));
+  console.log('DEBUG: Checking for token at:', tokenPath, fs.existsSync(tokenPath));
+
+  console.log('DEBUG: Checking for credentials at:', credentialsPath, fs.existsSync(credentialsPath));
+console.log('DEBUG: Checking for token at:', tokenPath, fs.existsSync(tokenPath));
+
   // Check if credentials exist
   if (!fs.existsSync(credentialsPath)) {
     console.warn('⚠️ Gmail credentials not found. Skipping Gmail ingestion.');
