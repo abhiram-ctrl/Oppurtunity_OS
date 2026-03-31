@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/opportunity.dart';
 
-const String _configuredBackendBaseUrl = 'http://192.168.137.205:5000';
+const String _configuredBackendBaseUrl = 'http://192.168.1.16:5000';
 const List<String> _candidateBackendBaseUrls = <String>[
   _configuredBackendBaseUrl,
   'http://10.0.2.2:5000',
@@ -46,6 +46,30 @@ class ApiService {
       );
       return [];
     }
+  }
+
+  Future<bool> deleteOpportunity(String id) async {
+    for (final baseUrl in _orderedBaseUrls) {
+      try {
+        final response = await http
+            .delete(
+              Uri.parse('$baseUrl/opportunities/$id'),
+              headers: const {'Content-Type': 'application/json'},
+            )
+            .timeout(const Duration(seconds: 8));
+
+        if (response.statusCode == 200) {
+          return true;
+        }
+      } catch (e, stackTrace) {
+        developer.log(
+          'Failed to delete opportunity at $baseUrl: $e',
+          name: 'ApiService',
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    return false;
   }
 
   Future<bool> checkHealth() async {

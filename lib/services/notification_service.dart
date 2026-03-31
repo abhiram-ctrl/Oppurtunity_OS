@@ -3,13 +3,16 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:notification_listener_service/notification_event.dart';
 import 'package:notification_listener_service/notification_listener_service.dart';
 
+import 'deadline_reminder_service.dart';
+
 const String _whatsAppPackageName = 'com.whatsapp';
 const List<String> _backendBaseUrls = <String>[
-  'http://192.168.137.205:5000',
+  'http://192.168.1.16:5000',
   'http://10.0.2.2:5000',
   'http://127.0.0.1:5000',
   'http://localhost:5000',
@@ -134,6 +137,32 @@ class NotificationService {
     }
   }
 
+  Future<void> _showNewOpportunityNotification({
+    required String title,
+    required String message,
+  }) async {
+    try {
+      await DeadlineReminderService.plugin.show(
+        1,
+        '🎯 New Opportunity Detected!',
+        title.isNotEmpty ? '$title — $message' : message,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'new_opportunities',
+            'New Opportunities',
+            channelDescription:
+                'Notifies when a new internship or job opportunity is detected',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+        ),
+      );
+    } catch (e) {
+      _log('Failed to show external notification: $e');
+    }
+  }
+
   Future<void> _sendNotificationToBackend({
     required String title,
     required String message,
@@ -159,6 +188,13 @@ class NotificationService {
             'WhatsApp notification sent to backend successfully via '
             '$endpoint (status ${response.statusCode}).',
           );
+          // Fire external system notification only when a NEW opportunity is saved (201)
+          if (response.statusCode == 201) {
+            await _showNewOpportunityNotification(
+              title: title,
+              message: message,
+            );
+          }
           return;
         }
 

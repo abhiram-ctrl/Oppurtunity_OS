@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/opportunity.dart';
+import '../services/api_service.dart';
 import '../widgets/opportunity_card.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -21,9 +22,47 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'Closing Soon', 'Remote', 'Paid'];
+  late List<Opportunity> _opportunities;
+
+  @override
+  void initState() {
+    super.initState();
+    _opportunities = List<Opportunity>.from(widget.opportunities);
+  }
+
+  Future<void> _handleDelete(Opportunity opportunity) async {
+    final success = await ApiService.instance.deleteOpportunity(opportunity.id);
+    if (!mounted) return;
+    if (success) {
+      setState(() {
+        _opportunities.removeWhere((o) => o.id == opportunity.id);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Opportunity deleted.',
+            style: GoogleFonts.inter(fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFF1A1A2E),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to delete. Please try again.',
+            style: GoogleFonts.inter(fontSize: 13),
+          ),
+          backgroundColor: const Color(0xFFFF4757).withOpacity(0.85),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   List<Opportunity> get _filteredOpportunities {
-    final all = widget.opportunities;
+    final all = _opportunities;
     switch (_selectedFilter) {
       case 'Closing Soon':
         return all.where((o) => o.daysLeft <= 7 && o.daysLeft > 0).toList();
@@ -60,6 +99,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   return OpportunityCard(
                     opportunity: opps[index],
                     index: index,
+                    onDelete: () => _handleDelete(opps[index]),
                   );
                 },
                 childCount: _filteredOpportunities.isEmpty
@@ -147,7 +187,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             ),
                           ),
                           Text(
-                            '${widget.opportunities.length} opportunities',
+                            '${_opportunities.length} opportunities',
                             style: GoogleFonts.inter(
                               fontSize: 13,
                               color: Colors.white.withOpacity(0.55),

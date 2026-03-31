@@ -1,5 +1,5 @@
 const Opportunity = require('../models/Opportunity');
-const { extractOpportunityFromText } = require('../services/geminiService');
+const { extractOpportunityFromText, isEmailRelevantToInternship } = require('../services/geminiService');
 const crypto = require('crypto');
 
 const DEFAULT_DEADLINE_DAYS = 14;
@@ -111,7 +111,16 @@ const importNotification = async (req, res) => {
       });
     }
 
-    // Step 1: Extract structured data using Gemini (required — no silent fallback)
+    // Step 1: Relevance filter — reject spam, personal, promotional messages
+    const isRelevant = await isEmailRelevantToInternship(readableMessage);
+    if (!isRelevant) {
+      console.log(`🚫 Notification skipped (not internship-related): ${title || message.slice(0, 60)}`);
+      return res.status(400).json({
+        message: 'Message does not appear to be an internship or job opportunity. Skipped.',
+      });
+    }
+
+    // Step 2: Extract structured data using Gemini (required — no silent fallback)
     console.log('[Gemini] Extracting opportunity data from WhatsApp message...');
     let extractedData;
     try {
@@ -125,7 +134,7 @@ const importNotification = async (req, res) => {
       });
     }
 
-    // Step 2: Validate required fields
+    // Step 3: Validate required fields
     const normalizedData = {
       company: extractedData.company || null,
       role: extractedData.role || null,
@@ -149,7 +158,7 @@ const importNotification = async (req, res) => {
 
     const deadlineBounds = getDeadlineBounds(deadline);
 
-    // Step 3a: Deduplicate by content hash (normalized summary — catches cross-source same content)
+    // Step 4a: Deduplicate by content hash (normalized summary — catches cross-source same content)
     const contentHash = buildMessageHash(`${company}|${role}|${deadline.toISOString().slice(0, 10)}`);
     const duplicateByContent = await Opportunity.findOne({ contentHash });
     if (duplicateByContent) {
@@ -161,7 +170,7 @@ const importNotification = async (req, res) => {
       return res.status(409).json({ message: 'Opportunity already exists', opportunity: duplicateByContent });
     }
 
-    // Step 3b: Deduplicate by company + role + deadline window
+    // Step 4b: Deduplicate by company + role + deadline window
     console.log(`Checking for duplicates: ${company} | ${role} | ${deadline}`);
     const duplicateOpportunity = deadlineBounds
       ? await Opportunity.findOne({
@@ -186,7 +195,7 @@ const importNotification = async (req, res) => {
       });
     }
 
-    // Step 4: Create and save new opportunity
+    // Step 5: Create and save new opportunity
     console.log('Creating new opportunity...');
     const newOpportunity = new Opportunity({
       company,
@@ -218,7 +227,21 @@ const importNotification = async (req, res) => {
   }
 };
 
+const deleteOpportunity = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Opportunity.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Opportunity not found' });
+    }
+    res.status(200).json({ message: 'Opportunity deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete opportunity', error: error.message });
+  }
+};
+
 module.exports = {
   getOpportunities,
   importNotification,
+  deleteOpportunity,
 };

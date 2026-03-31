@@ -9,11 +9,13 @@ import '../screens/opportunity_detail_screen.dart';
 class OpportunityCard extends StatelessWidget {
   final Opportunity opportunity;
   final int index;
+  final Future<void> Function()? onDelete;
 
   const OpportunityCard({
     super.key,
     required this.opportunity,
     required this.index,
+    this.onDelete,
   });
 
   Future<void> _openApplyLink(BuildContext context) async {
@@ -197,7 +199,7 @@ class OpportunityCard extends StatelessWidget {
                     const SizedBox(height: 14),
                     const Divider(color: Color(0xFF252540), height: 1),
                     const SizedBox(height: 12),
-                    // ── Bottom row: sources + apply button ──────────────────
+                    // ── Bottom row: sources + delete + apply button ─────────
                     Row(
                       children: [
                         // Source icons
@@ -214,6 +216,76 @@ class OpportunityCard extends StatelessWidget {
                           ],
                         ),
                         const Spacer(),
+                        // Delete button
+                        if (onDelete != null)
+                          GestureDetector(
+                            onTap: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  backgroundColor: const Color(0xFF1A1A2E),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  title: Text(
+                                    'Delete Opportunity',
+                                    style: GoogleFonts.inter(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  content: Text(
+                                    'Remove "${opportunity.role}" at ${opportunity.company}?',
+                                    style: GoogleFonts.inter(
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: Text(
+                                        'Cancel',
+                                        style: GoogleFonts.inter(
+                                          color: Colors.white.withOpacity(0.5),
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: Text(
+                                        'Delete',
+                                        style: GoogleFonts.inter(
+                                          color: const Color(0xFFFF4757),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                await onDelete!();
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFF4757).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFFFF4757).withOpacity(0.25),
+                                  width: 1,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.delete_outline_rounded,
+                                color: Color(0xFFFF4757),
+                                size: 16,
+                              ),
+                            ),
+                          ),
                         // Apply button
                         GestureDetector(
                           onTap: () async {

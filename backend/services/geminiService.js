@@ -3,14 +3,26 @@ const axios = require('axios');
 const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-2.5-flash'];
 
 const buildRelevancePrompt = (emailText) =>
-  `You are a smart email filter for an internship tracking app.
+  `You are a strict email filter for an internship tracking app. Your job is to decide if an email contains a REAL, ACTIONABLE internship or job opportunity.
 
-Read the following email carefully. Reply ONLY with "YES" if it is about an internship, job opening, placement, fellowship, hiring announcement, or career opportunity. Reply ONLY with "NO" if it is a promotional email, newsletter, advertisement, OTP, receipt, social update, subscription offer, or anything unrelated to internships/jobs.
+Reply ONLY with "YES" if ALL of the following are true:
+- The email is specifically about an internship, job opening, placement, fellowship, or hiring opportunity
+- It mentions a concrete company/organization name AND a role/position title
+- It is a direct hiring announcement — not a general newsletter or blog post about careers
+
+Reply ONLY with "NO" for any of the following:
+- Music/streaming services (Spotify, Apple Music, etc.)
+- Promotional offers, discounts, sales, or subscription emails
+- OTP, login alerts, account notifications, receipts, or invoices
+- Social media updates, newsletters, or general blog posts
+- Personal emails, spam, or anything not directly about hiring
+- Emails from entertainment, retail, food, travel, or non-tech companies with no job opening
+- Any email where the "opportunity" language is clearly marketing copy, not a real job
 
 Email:
-${emailText.slice(0, 2000)}
+${emailText.slice(0, 2500)}
 
-Answer with YES or NO only.`;
+Answer with YES or NO only. If you are not sure, answer NO.`;
 
 const buildPrompt = (rawText) => `Extract structured internship/opportunity information from the following text and respond ONLY with a valid JSON object — no markdown, no code fences, no extra text.
 
@@ -136,7 +148,16 @@ const inferCategory = (text) => {
     return 'Genomics / Life Sciences';
   }
 
-  if (value.includes('ai') || value.includes('ml') || value.includes('machine learning')) {
+  if (
+    /\bai\b/.test(value) ||
+    /\bml\b/.test(value) ||
+    value.includes('machine learning') ||
+    value.includes('artificial intelligence') ||
+    value.includes('deep learning') ||
+    value.includes('natural language') ||
+    value.includes('computer vision') ||
+    value.includes('nlp')
+  ) {
     return 'AI/ML';
   }
   if (

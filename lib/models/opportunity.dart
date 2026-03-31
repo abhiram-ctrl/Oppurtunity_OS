@@ -107,9 +107,14 @@ class Opportunity {
         cat.contains('biotechnology')) {
       return 'genomics_lifescience';
     }
-    if (cat.contains('ai') ||
-        cat.contains('ml') ||
-        cat.contains('machine learning')) {
+    if (RegExp(r'\bai\b').hasMatch(cat) ||
+        RegExp(r'\bml\b').hasMatch(cat) ||
+        cat.contains('machine learning') ||
+        cat.contains('artificial intelligence') ||
+        cat.contains('deep learning') ||
+        cat.contains('natural language') ||
+        cat.contains('computer vision') ||
+        cat.contains('nlp')) {
       return 'ai_ml';
     }
     if (cat.contains('data science') ||

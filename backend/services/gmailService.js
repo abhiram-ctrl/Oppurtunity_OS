@@ -294,8 +294,8 @@ const processOneMessage = async (gmail, messageId) => {
 };
 
 const processRecentOpportunityEmails = async ({
-  credentialsPath = path.join(__dirname, '..', 'config', 'credentials.json'),
-  tokenPath = path.join(__dirname, '..', 'config', 'token.json'),
+  credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || '/etc/secrets/credentials.json',
+  tokenPath = process.env.GMAIL_TOKEN_PATH || '/etc/secrets/token.json',
   maxResults = DEFAULT_MAX_RESULTS,
 } = {}) => {
   const auth = buildOAuthClient({ credentialsPath, tokenPath });
@@ -358,8 +358,8 @@ const processRecentOpportunityEmails = async ({
 
 const startGmailIngestion = async () => {
   const cron = require('node-cron');
-  const credentialsPath = path.join(__dirname, '..', 'config', 'credentials.json');
-  const tokenPath = path.join(__dirname, '..', 'config', 'token.json');
+  const credentialsPath = process.env.GMAIL_CREDENTIALS_PATH || '/etc/secrets/credentials.json';
+  const tokenPath = process.env.GMAIL_TOKEN_PATH || '/etc/secrets/token.json';
 
   // Check if credentials exist
   if (!fs.existsSync(credentialsPath)) {

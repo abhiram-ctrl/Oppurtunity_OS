@@ -21,14 +21,14 @@ class DeadlineReminderService {
   DeadlineReminderService._();
 
   // ── Reminder time ─────────────────────────────────────────────
-  static const int _reminderHour = 12; // 🎯 DEMO: 8 AM
+  static const int _reminderHour = 17; // 🎯 DEMO: 8 AM
   static const int _reminderMinute = 00; // 🎯 DEMO: fires at 8:36 AM
   // ──────────────────────────────────────────────────────────────
 
   static const int _daysThreshold =
       3; // Notify only for deadlines within 3 days
 
-  static final _plugin = FlutterLocalNotificationsPlugin();
+  static final plugin = FlutterLocalNotificationsPlugin();
   static Timer? _timer;
   static DateTime? _lastFiredDate;
 
@@ -54,12 +54,12 @@ class DeadlineReminderService {
       '@mipmap/ic_launcher',
     );
     const settings = InitializationSettings(android: androidSettings);
-    await _plugin.initialize(settings);
+    await plugin.initialize(settings);
   }
 
   static Future<void> _requestPermission() async {
     try {
-      final android = _plugin
+      final android = plugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >();
@@ -128,7 +128,7 @@ class DeadlineReminderService {
 
     const channelId = 'deadline_reminders';
 
-    await _plugin.show(
+    await plugin.show(
       100 + index,
       '$urgencyLabel — ${opp.company}',
       '${opp.role} · Apply before the deadline!',
